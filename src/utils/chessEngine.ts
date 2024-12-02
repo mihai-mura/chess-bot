@@ -1,6 +1,7 @@
 import { Chess, Move } from "chess.js";
 import _ from "lodash";
 import BoardEvaluation from "./boardEvaluation";
+import getBestMove from "./minimax";
 
 class ChessEngine {
   static makeRandomMove = (currentGame: Chess): Chess => {
@@ -59,6 +60,26 @@ class ChessEngine {
     if (bestMove === "") return this.makeRandomMove(currentGame);
 
     gameCopy.move(bestMove);
+    return gameCopy;
+  };
+
+  static makeMinimaxMove = (currentGame: Chess, depth: number): Chess => {
+    const gameCopy = _.cloneDeep(currentGame);
+    const possibleMoves = currentGame.moves();
+
+    // exit if the game is over
+    if (
+      currentGame.isGameOver() ||
+      currentGame.isDraw() ||
+      possibleMoves.length === 0
+    )
+      return currentGame;
+
+    const isWhitesTurn = currentGame.turn() === "w";
+
+    const bestMove = getBestMove(depth, gameCopy, isWhitesTurn);
+    gameCopy.move(bestMove);
+
     return gameCopy;
   };
 }

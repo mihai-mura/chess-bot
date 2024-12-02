@@ -26,7 +26,7 @@ function ChessGame(props: React.ComponentProps<"div">) {
 
     //random move
     setTimeout(() => {
-      setGame(ChessEngine.makeEvaluationMove(gameCopy));
+      setGame(ChessEngine.makeMinimaxMove(gameCopy, 3));
     }, MOVE_TIMEOUT_MS);
 
     return true;
