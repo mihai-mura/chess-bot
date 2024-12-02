@@ -5,19 +5,18 @@ import BoardEvaluation from "./boardEvaluation";
 const getBestMove = (depth: number, game: Chess, isWhite: boolean): string => {
   const gameMoves = game.moves();
   let bestMove = isWhite ? -9999 : 9999;
-  let bestMoveFound: string = "";
+  let bestMoveFound = "";
 
-  for (let i = 0; i < gameMoves.length; i++) {
-    const newGameMove = gameMoves[i] ?? "";
-    game.move(newGameMove ?? "");
+  for (const move of gameMoves) {
+    game.move(move);
     const value = minimax(depth - 1, game, !isWhite);
     game.undo();
     if (isWhite && value >= bestMove) {
       bestMove = value;
-      bestMoveFound = newGameMove;
+      bestMoveFound = move;
     } else if (!isWhite && value <= bestMove) {
       bestMove = value;
-      bestMoveFound = newGameMove;
+      bestMoveFound = move;
     }
   }
   return bestMoveFound;
@@ -30,16 +29,16 @@ const minimax = (depth: number, game: Chess, isWhite: boolean) => {
 
   if (isWhite) {
     let bestEval = -9999;
-    for (let i = 0; i < gameMoves.length; i++) {
-      game.move(gameMoves[i] ?? "");
+    for (const move of gameMoves) {
+      game.move(move);
       bestEval = Math.max(bestEval, minimax(depth - 1, game, !isWhite));
       game.undo();
     }
     return bestEval;
   } else {
     let bestEval = 9999;
-    for (let i = 0; i < gameMoves.length; i++) {
-      game.move(gameMoves[i] ?? "");
+    for (const move of gameMoves) {
+      game.move(move);
       bestEval = Math.min(bestEval, minimax(depth - 1, game, !isWhite));
       game.undo();
     }
