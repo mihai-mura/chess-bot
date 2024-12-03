@@ -9,7 +9,7 @@ const getBestMove = (depth: number, game: Chess, isWhite: boolean): string => {
 
   for (const move of gameMoves) {
     game.move(move);
-    const value = minimax(depth - 1, game, !isWhite);
+    const value = minimaxAlphaBeta(depth - 1, game, -10000, 10000, !isWhite);
     game.undo();
     if (isWhite && value >= bestMove) {
       bestMove = value;
@@ -46,48 +46,49 @@ const minimax = (depth: number, game: Chess, isWhite: boolean) => {
   }
 };
 
-// const minimax = (
-//   depth: number,
-//   game: Chess,
-//   alpha: number,
-//   beta: number,
-//   isMaximizingPlayer: boolean,
-// ) => {
-//   if (depth === 0) return -BoardEvaluation.evaluatePosition(game);
+const minimaxAlphaBeta = (
+  depth: number,
+  game: Chess,
+  alpha: number,
+  beta: number,
+  isWhite: boolean,
+) => {
+  if (depth === 0) return BoardEvaluation.evaluatePosition(game);
 
-//   const gameMoves = game.moves();
+  const gameMoves = game.moves();
 
-//   if (isMaximizingPlayer) {
-//     let bestMove = -9999;
-//     for (let i = 0; i < gameMoves.length; i++) {
-//       game.move(gameMoves[i] ?? "");
-//       bestMove = Math.max(
-//         bestMove,
-//         minimax(depth - 1, game, alpha, beta, !isMaximizingPlayer),
-//       );
-//       game.undo();
-//       alpha = Math.max(alpha, bestMove);
-//       if (beta <= alpha) {
-//         return bestMove;
-//       }
-//     }
-//     return bestMove;
-//   } else {
-//     let bestMove = 9999;
-//     for (let i = 0; i < gameMoves.length; i++) {
-//       game.move(gameMoves[i] ?? "");
-//       bestMove = Math.min(
-//         bestMove,
-//         minimax(depth - 1, game, alpha, beta, !isMaximizingPlayer),
-//       );
-//       game.undo();
-//       beta = Math.min(beta, bestMove);
-//       if (beta <= alpha) {
-//         return bestMove;
-//       }
-//     }
-//     return bestMove;
-//   }
-// };
+  if (isWhite) {
+    let bestEval = -9999;
+    for (const move of gameMoves) {
+      game.move(move);
+      bestEval = Math.max(
+        bestEval,
+        minimaxAlphaBeta(depth - 1, game, alpha, beta, !isWhite),
+      );
+      game.undo();
+
+      alpha = Math.max(alpha, bestEval);
+      if (beta <= alpha) {
+        return bestEval;
+      }
+    }
+    return bestEval;
+  } else {
+    let bestEval = 9999;
+    for (const move of gameMoves) {
+      game.move(move);
+      bestEval = Math.min(
+        bestEval,
+        minimaxAlphaBeta(depth - 1, game, alpha, beta, !isWhite),
+      );
+      game.undo();
+      beta = Math.min(beta, bestEval);
+      if (beta <= alpha) {
+        return bestEval;
+      }
+    }
+    return bestEval;
+  }
+};
 
 export default getBestMove;
