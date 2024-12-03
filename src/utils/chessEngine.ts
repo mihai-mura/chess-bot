@@ -63,7 +63,11 @@ class ChessEngine {
     return gameCopy;
   };
 
-  static makeMinimaxMove = (currentGame: Chess, depth: number): Chess => {
+  static makeMinimaxMove = (
+    currentGame: Chess,
+    depth: number,
+    useAlphaBeta: boolean,
+  ): { game: Chess; positionsEvaluated: number } => {
     const gameCopy = _.cloneDeep(currentGame);
     const possibleMoves = currentGame.moves();
 
@@ -73,14 +77,19 @@ class ChessEngine {
       currentGame.isDraw() ||
       possibleMoves.length === 0
     )
-      return currentGame;
+      return { game: currentGame, positionsEvaluated: 0 };
 
     const isWhitesTurn = currentGame.turn() === "w";
 
-    const bestMove = getBestMove(depth, gameCopy, isWhitesTurn);
+    const { move: bestMove, positionsEvaluated } = getBestMove(
+      depth,
+      gameCopy,
+      isWhitesTurn,
+      useAlphaBeta,
+    );
     gameCopy.move(bestMove);
 
-    return gameCopy;
+    return { game: gameCopy, positionsEvaluated };
   };
 }
 

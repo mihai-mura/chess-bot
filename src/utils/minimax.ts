@@ -1,15 +1,25 @@
 import { Chess } from "chess.js";
 import BoardEvaluation from "./boardEvaluation";
 
+let positionsEvaluated = 0;
+
 // minimaxRoot
-const getBestMove = (depth: number, game: Chess, isWhite: boolean): string => {
+const getBestMove = (
+  depth: number,
+  game: Chess,
+  isWhite: boolean,
+  useAlphaBeta: boolean,
+): { move: string; positionsEvaluated: number } => {
   const gameMoves = game.moves();
   let bestMove = isWhite ? -9999 : 9999;
   let bestMoveFound = "";
+  positionsEvaluated = 0;
 
   for (const move of gameMoves) {
     game.move(move);
-    const value = minimaxAlphaBeta(depth - 1, game, -10000, 10000, !isWhite);
+    const value = useAlphaBeta
+      ? minimaxAlphaBeta(depth - 1, game, -10000, 10000, !isWhite)
+      : minimax(depth - 1, game, !isWhite);
     game.undo();
     if (isWhite && value >= bestMove) {
       bestMove = value;
@@ -19,11 +29,14 @@ const getBestMove = (depth: number, game: Chess, isWhite: boolean): string => {
       bestMoveFound = move;
     }
   }
-  return bestMoveFound;
+  return { move: bestMoveFound, positionsEvaluated };
 };
 
 const minimax = (depth: number, game: Chess, isWhite: boolean) => {
-  if (depth === 0) return BoardEvaluation.evaluatePosition(game);
+  if (depth === 0) {
+    positionsEvaluated++;
+    return BoardEvaluation.evaluatePosition(game);
+  }
 
   const gameMoves = game.moves();
 
@@ -53,7 +66,10 @@ const minimaxAlphaBeta = (
   beta: number,
   isWhite: boolean,
 ) => {
-  if (depth === 0) return BoardEvaluation.evaluatePosition(game);
+  if (depth === 0) {
+    positionsEvaluated++;
+    return BoardEvaluation.evaluatePosition(game);
+  }
 
   const gameMoves = game.moves();
 

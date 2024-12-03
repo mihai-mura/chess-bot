@@ -22,6 +22,25 @@ function ChessGame(props: React.ComponentProps<"div">) {
   const [moveSquares, setMoveSquares] = useState({});
   const [optionSquares, setOptionSquares] = useState({});
 
+  const [minimaxPositionsEvaluated, setMinimaxPositionsEvaluated] = useState(0);
+
+  const makeMinimaxMove = (currentGame: Chess, isDragMove: boolean) => {
+    const { game: newGame, positionsEvaluated } = ChessEngine.makeMinimaxMove(
+      currentGame,
+      3,
+      true,
+    );
+    setMinimaxPositionsEvaluated(positionsEvaluated);
+    setTimeout(
+      () => {
+        setGame(newGame);
+      },
+      isDragMove
+        ? AI_MOVE_TIMEOUT_MS
+        : AI_MOVE_TIMEOUT_MS + PLAYER_MOVE_TIMEOUT,
+    );
+  };
+
   function onDrop(sourceSquare: Square, targetSquare: Square, piece: Piece) {
     const gameCopy = _.cloneDeep(game);
     const move = gameCopy.move({
@@ -35,9 +54,7 @@ function ChessGame(props: React.ComponentProps<"div">) {
 
     setGame(gameCopy);
 
-    setTimeout(() => {
-      setGame(ChessEngine.makeMinimaxMove(gameCopy, 3));
-    }, AI_MOVE_TIMEOUT_MS);
+    makeMinimaxMove(gameCopy, true);
 
     return true;
   }
@@ -51,7 +68,13 @@ function ChessGame(props: React.ComponentProps<"div">) {
       setOptionSquares({});
       return false;
     }
-    const newSquares: { [key: string]: any } = {};
+    const newSquares: Record<
+      string,
+      {
+        background?: string;
+        borderRadius?: string;
+      }
+    > = {};
     moves.map((move) => {
       newSquares[move.to] = {
         background:
@@ -134,9 +157,7 @@ function ChessGame(props: React.ComponentProps<"div">) {
       setMoveTo(null);
       setOptionSquares({});
 
-      setTimeout(() => {
-        setGame(ChessEngine.makeMinimaxMove(gameCopy, 3));
-      }, AI_MOVE_TIMEOUT_MS + PLAYER_MOVE_TIMEOUT);
+      makeMinimaxMove(gameCopy, false);
     }
   }
 
@@ -149,16 +170,14 @@ function ChessGame(props: React.ComponentProps<"div">) {
         to: moveTo ?? "",
         promotion: piece[1]!.toLowerCase() ?? "q",
       });
+
       setGame(gameCopy);
+      setMoveFrom(null);
+      setMoveTo(null);
+      setShowPromotionDialog(false);
+      setOptionSquares({});
 
-      setTimeout(() => {
-        setMoveFrom(null);
-        setMoveTo(null);
-        setShowPromotionDialog(false);
-        setOptionSquares({});
-
-        setGame(ChessEngine.makeMinimaxMove(gameCopy, 3));
-      }, AI_MOVE_TIMEOUT_MS + PLAYER_MOVE_TIMEOUT);
+      makeMinimaxMove(gameCopy, false);
     } else {
       setMoveFrom(null);
       setMoveTo(null);
@@ -188,6 +207,7 @@ function ChessGame(props: React.ComponentProps<"div">) {
         promotionToSquare={moveTo}
         showPromotionDialog={showPromotionDialog}
       />
+      <h3>Positions Evaluated: {minimaxPositionsEvaluated}</h3>
     </div>
   );
 }
