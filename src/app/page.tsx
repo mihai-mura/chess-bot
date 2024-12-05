@@ -1,6 +1,6 @@
 "use client";
 import { useState } from "react";
-import ChessboardGame from "~/components/Chessboard";
+import ChessboardGame from "~/components/chessboard";
 import ChessGameForm, { ChessGameSettings } from "~/components/StartGameForm";
 
 export default function HomePage() {
