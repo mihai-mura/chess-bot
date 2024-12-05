@@ -1,7 +1,7 @@
 "use client";
 import { Chess } from "chess.js";
 import _ from "lodash";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Chessboard } from "react-chessboard";
 import {
   Piece,
@@ -9,35 +9,45 @@ import {
   Square,
 } from "react-chessboard/dist/chessboard/types";
 import ChessEngine from "~/utils/chessEngine";
+import { ChessGameSettings } from "./StartGameForm";
 
 const AI_MOVE_TIMEOUT_MS = 200;
 const PLAYER_MOVE_TIMEOUT = 200;
 
-function ChessGame(props: React.ComponentProps<"div">) {
+interface ChessGameProps extends React.ComponentProps<"div"> {
+  gameSettings: ChessGameSettings | null;
+}
+
+function ChessGame({ className, gameSettings }: ChessGameProps) {
   const [game, setGame] = useState(new Chess());
   const [moveFrom, setMoveFrom] = useState<Square | null>(null);
   const [moveTo, setMoveTo] = useState<Square | null>(null);
   const [showPromotionDialog, setShowPromotionDialog] = useState(false);
   const [rightClickedSquares, setRightClickedSquares] = useState({});
-  const [moveSquares, setMoveSquares] = useState({});
   const [optionSquares, setOptionSquares] = useState({});
 
   const [minimaxPositionsEvaluated, setMinimaxPositionsEvaluated] = useState(0);
 
-  const makeMinimaxMove = (currentGame: Chess, isDragMove: boolean) => {
+  useEffect(() => {
+    if (gameSettings?.playingColor === "white") return;
+    setTimeout(() => makeMinimaxMove(game, true), AI_MOVE_TIMEOUT_MS);
+  }, []);
+
+  const makeMinimaxMove = (currentGame: Chess, isDoubleDelay: boolean) => {
+    if (!gameSettings) throw new Error("GameSettings undefined!");
     const { game: newGame, positionsEvaluated } = ChessEngine.makeMinimaxMove(
       currentGame,
-      3,
-      true,
+      gameSettings?.depth,
+      gameSettings?.useAlphaBetaPruning,
     );
     setMinimaxPositionsEvaluated(positionsEvaluated);
     setTimeout(
       () => {
         setGame(newGame);
       },
-      isDragMove
-        ? AI_MOVE_TIMEOUT_MS
-        : AI_MOVE_TIMEOUT_MS + PLAYER_MOVE_TIMEOUT,
+      isDoubleDelay
+        ? AI_MOVE_TIMEOUT_MS + PLAYER_MOVE_TIMEOUT
+        : AI_MOVE_TIMEOUT_MS,
     );
   };
 
@@ -54,7 +64,7 @@ function ChessGame(props: React.ComponentProps<"div">) {
 
     setGame(gameCopy);
 
-    makeMinimaxMove(gameCopy, true);
+    makeMinimaxMove(gameCopy, false);
 
     return true;
   }
@@ -157,7 +167,7 @@ function ChessGame(props: React.ComponentProps<"div">) {
       setMoveTo(null);
       setOptionSquares({});
 
-      makeMinimaxMove(gameCopy, false);
+      makeMinimaxMove(gameCopy, true);
     }
   }
 
@@ -177,7 +187,7 @@ function ChessGame(props: React.ComponentProps<"div">) {
       setShowPromotionDialog(false);
       setOptionSquares({});
 
-      makeMinimaxMove(gameCopy, false);
+      makeMinimaxMove(gameCopy, true);
     } else {
       setMoveFrom(null);
       setMoveTo(null);
@@ -188,17 +198,17 @@ function ChessGame(props: React.ComponentProps<"div">) {
   }
 
   return (
-    <div {...props}>
+    <div className={className}>
       <Chessboard
-        boardWidth={700}
         position={game.fen()}
+        boardOrientation={gameSettings?.playingColor}
         onPieceDrop={onDrop}
         customBoardStyle={{
           borderRadius: "4px",
           boxShadow: "0 2px 10px rgba(0, 0, 0, 0.5)",
+          width: "100%",
         }}
         customSquareStyles={{
-          ...moveSquares,
           ...optionSquares,
           ...rightClickedSquares,
         }}
@@ -207,7 +217,15 @@ function ChessGame(props: React.ComponentProps<"div">) {
         promotionToSquare={moveTo}
         showPromotionDialog={showPromotionDialog}
       />
-      <h3>Positions Evaluated: {minimaxPositionsEvaluated}</h3>
+      <div>
+        <h3>Using Depth: {gameSettings?.depth}</h3>
+        <h3>
+          Using Alpha-Beta:{" "}
+          {gameSettings?.useAlphaBetaPruning ? "true" : "false"}
+        </h3>
+
+        <h3>Positions Evaluated: {minimaxPositionsEvaluated}</h3>
+      </div>
     </div>
   );
 }
