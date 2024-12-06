@@ -19,7 +19,10 @@ interface ChessGameProps extends React.ComponentProps<"div"> {
 }
 
 function ChessGame({ className, gameSettings }: ChessGameProps) {
-  const [game, setGame] = useState(new Chess());
+  const [game, setGame] = useState(
+    gameSettings?.fen ? new Chess(gameSettings?.fen) : new Chess(),
+  );
+
   const [moveFrom, setMoveFrom] = useState<Square | null>(null);
   const [moveTo, setMoveTo] = useState<Square | null>(null);
   const [showPromotionDialog, setShowPromotionDialog] = useState(false);
@@ -29,7 +32,8 @@ function ChessGame({ className, gameSettings }: ChessGameProps) {
   const [minimaxPositionsEvaluated, setMinimaxPositionsEvaluated] = useState(0);
 
   useEffect(() => {
-    if (gameSettings?.playingColor === "white") return;
+    if (gameSettings?.playingColor === "white" && game.turn() === "w") return;
+    if (gameSettings?.playingColor === "black" && game.turn() === "b") return;
     setTimeout(() => makeMinimaxMove(game, true), AI_MOVE_TIMEOUT_MS);
   }, []);
 

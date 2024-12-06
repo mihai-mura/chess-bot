@@ -22,11 +22,13 @@ import {
 import { RadioGroup, RadioGroupItem } from "~/components/ui/radio-group";
 import { Slider } from "~/components/ui/slider";
 import { Switch } from "~/components/ui/switch";
+import { Input } from "./ui/input";
 
 export interface ChessGameSettings {
   playingColor: "white" | "black";
   depth: number;
   useAlphaBetaPruning: boolean;
+  fen: string | null;
 }
 
 interface ChessGameFormProps {
@@ -39,11 +41,12 @@ export default function ChessGameForm({ onSubmit }: ChessGameFormProps) {
       playingColor: "white",
       depth: 3,
       useAlphaBetaPruning: true,
+      fen: null,
     },
   });
 
   return (
-    <Card className="w-[350px]">
+    <Card className="w-[400px]">
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <CircuitBoardIcon className="h-6 w-6" />
@@ -122,6 +125,30 @@ export default function ChessGameForm({ onSubmit }: ChessGameFormProps) {
                       onCheckedChange={field.onChange}
                     />
                   </FormControl>
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="fen"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Load FEN</FormLabel>
+                  <div className="flex space-x-2">
+                    <FormControl>
+                      <Input
+                        placeholder="Enter FEN string"
+                        value={field.value ?? ""}
+                        onChange={(value) => field.onChange(value)}
+                      />
+                    </FormControl>
+                    <Button type="button" onClick={form.handleSubmit(onSubmit)}>
+                      Load
+                    </Button>
+                  </div>
+                  <FormDescription>
+                    Load a specific board position using FEN notation.
+                  </FormDescription>
                 </FormItem>
               )}
             />
